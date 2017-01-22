@@ -8,12 +8,4 @@ app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x
 
 app.use('/users', require('./api/user'));
 
-app.listen(3000, () => {
-  console.log(`Run at http://localhost:3000`)
-  models.sequelize.sync({force: true})
-      .then(() => {
-        console.log('Database sync');
-      });
-});
-
 module.exports = app;
