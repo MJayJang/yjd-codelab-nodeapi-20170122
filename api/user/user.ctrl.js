@@ -7,7 +7,7 @@ const index = (req, res) => {
   const offset = parseInt(req.query.offset, 10);
   if (Number.isNaN(offset)) return res.status(400).end();
 
-  models.User.findAll({}).then(users => {
+  models.User.findAll({offset, limit}).then(users => {
     res.json(users);
   });
 };
@@ -15,24 +15,23 @@ const show = (req, res) => {
   const id = parseInt(req.params.id, 10);
   if(Number.isNaN(id)) return res.status(400).end();
 
-  const user = users.filter(u => u.id === id)[0];
-  if(user === undefined) return res.status(404).end();
-
-  res.json(user);
+  models.User.findOne({where: {id}}).then(user => {
+    if(!user) return res.status(404).end();
+    res.json(user);
+  });
 };
 const create = (req, res) => {
   const name = req.body.name;
   if (!name) return res.status(400).end();
 
-  const foundUsers = users.filter(user => user.name === name);
-  if (foundUsers.length > 0) return res.status(409).end();
-
-  const id = users.reduce((max, user) => {
-    return user.id > max ? user.id : max;
-  }, 0) + 1;
-  const user = {name, id};
-  users.push(user);
-  res.json(user);
+  models.User.create({name})
+      .then(user => res.json(user))
+      .catch(err => {
+        if (err.name === 'SequelizeUniqueConstraintError') {
+          return res.status(409).end();
+        }
+        res.status(500).end();
+      });
 };
 const update = (req, res) => {
   const id = parseInt(req.params.id, 10);

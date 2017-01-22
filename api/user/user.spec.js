@@ -1,20 +1,28 @@
 const should = require('should');
 const request = require('supertest');
 const app = require('../../app');
+const db = require('../../bin/db');
+const models = require('../../models');
 
 describe('GET /users', () => {
   describe('success', () => {
+    const users = [{name: 'Alice'}, {name: 'Bek'}, {name: 'Chris'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('유저 객체를 담은 배열을 응답한다', (done)=> {
+      const limit = 1;
       request(app)
-          .get('/users?limit=3&offset=0')
+          .get(`/users?limit=${limit}&offset=0`)
           .end((err, res) => {
-            res.body.should.be.instanceof(Array);
+            res.body.should.be.instanceof(Array).with.have.lengthOf(limit);
             res.body.forEach(user => {
               user.should.have.properties('id','name');
             })
             done();
           })
     });
+
     it('최대 limit 갯수만큼 응답한다', (done)=> {
       request(app)
           .get('/users?limit=2&offset=0')
@@ -41,6 +49,10 @@ describe('GET /users', () => {
 })
 describe('GET /users/:id', ()=>{
   describe('success', ()=>{
+    const users = [{name: 'Alice'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('id가 1인 유저 객체를 반환한다', done=>{
       request(app)
           .get('/users/1')
@@ -67,7 +79,7 @@ describe('GET /users/:id', ()=>{
     })
   });
 });
-describe('POST /users', ()=>{
+describe.only('POST /users', ()=>{
   describe('success', ()=>{
     let _res;
     const name = 'daniel';
@@ -80,6 +92,11 @@ describe('POST /users', ()=>{
             done();
           });
     });
+
+    const users = [{name: 'Alice'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('생성된 유저 객체를 반환한다', ()=>{
       _res.body.should.have.properties('id', 'name');
     })
@@ -88,6 +105,10 @@ describe('POST /users', ()=>{
     })
   });
   describe('fail', ()=>{
+    const users = [{name: 'Alice'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('name 파라매터 누락시 400을 반환한다', done=>{
       request(app)
           .post('/users')
@@ -98,7 +119,7 @@ describe('POST /users', ()=>{
     it('name이 중복일 경우 409를 반환한다', done=>{
       request(app)
           .post('/users')
-          .send({name: 'Alice'})
+          .send(users[0])
           .expect(409)
           .end(done);
     })
