@@ -79,7 +79,7 @@ describe('GET /users/:id', ()=>{
     })
   });
 });
-describe.only('POST /users', ()=>{
+describe('POST /users', ()=>{
   describe('success', ()=>{
     let _res;
     const name = 'daniel';
@@ -127,6 +127,10 @@ describe.only('POST /users', ()=>{
 })
 describe('PUT /users/:id', ()=>{
   describe('success', ()=>{
+    const users = [{name: 'Alice'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('변경된 정보를 응답한다', done=>{
       const name = 'Adel';
       request(app)
@@ -139,6 +143,10 @@ describe('PUT /users/:id', ()=>{
     });
   })
   describe('fail', ()=>{
+    const users = [{name: 'Alice'}, {name: 'Bek'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('정수가 아닌 id일 경우 400 응답', done=>{
       request(app)
           .put('/users/one')
@@ -161,8 +169,8 @@ describe('PUT /users/:id', ()=>{
     });
     it('이름이 중복일 경우 409 응답', done=>{
       request(app)
-          .put('/users/2')
-          .send({name: 'Chris'})
+          .put('/users/1')
+          .send(users[1])
           .expect(409)
           .end(done);
     });
@@ -170,12 +178,23 @@ describe('PUT /users/:id', ()=>{
 });
 describe('DELETE /users/:id', ()=>{
   describe('success', ()=>{
+    const users = [{name: 'Alice'}];
+    before('디비싱크', () =>  db.sync({force: true}));
+    before('Insert seeed', ()=> models.User.bulkCreate(users));
+
     it('204를 응답한다', done=>{
       request(app)
           .delete('/users/1')
           .expect(204)
-          .end(done);
-    })
+          .end((err, res) => {
+            if (err) throw err;
+            return models.User.findAll({where: {name: users[0].name}})
+                .then(users => {
+                  users.should.have.lengthOf(0);
+                  done();
+                })
+          });
+    });
   });
   describe('fail', ()=>{
     it('id가 숫자가 아닐경우 400으로 응답한다', done=>{
