@@ -8,4 +8,6 @@ app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x
 
 app.use('/users', require('./api/user'));
 
+require('./config/swagger').setup(app);
+
 module.exports = app;
