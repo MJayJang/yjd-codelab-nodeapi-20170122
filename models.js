@@ -1,9 +1,7 @@
 // models.js
+const config = require('./config/env');
 const Sequelize = require('sequelize');
-const sequelize = new Sequelize({
-  storage: 'db.sqlite',
-  dialect: 'sqlite'
-});
+const sequelize = new Sequelize(config.db);
 
 const User = sequelize.define('user', {
   name: {

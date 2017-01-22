@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node app.js",
-    "test": "mocha api/user/user.spec.js -w"
+    "start": "NODE_ENV=development node bin/www",
+    "test": "NODE_ENV=test mocha api/user/user.spec.js -w"
   },
   "author": "",
   "license": "ISC",
